@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minimal-ingress
+  namespace: mongo-express          # Same as service and pod
+spec:
+  rules:
+  - host: myapp.com
+    http:
+      paths:
+      - backend:
+          serviceName: mongo-express-service
+          servicePort: 8081
+      

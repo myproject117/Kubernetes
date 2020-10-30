@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express-deployment
+  labels: 
+    app: mongo-express
+spec:               
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:             
+      containers:
+      - name: mongo-express
+        image: mongo-express 
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME    # Username to access mongodb pode 
+          valueFrom:
+              secretKeyRef:
+                name: mongodb-secret            
+                key: username
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD    # Password to access mongodb pode
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: password
+        - name: ME_CONFIG_MONGODB_SERVER           # Service or url to access mongo DB
+          valueFrom:
+             configMapKeyRef:
+              name: mongodb-configmap              # Name of config_map name
+              key: database_url                    # Key of config_map key
+---
+apiVersion: v1                          # Mongo-Express external Service to end user.
+kind: Service
+metadata:
+  name: mongo-express-service
+spec:
+  selector:
+    app: mongo-express                         
+  ports:                            # LoadBalancer  not required for internal service.
+    - protocol: TCP                 # nodePort                                       
+      port: 8081                       # Service port 
+      targetPort: 8081                 # Container port of deployment
+                                    # Line 46 and 51 made the the Service External.
+                                       # Line 46 - Add an external IP. So, enable     # Ext Access
+                                       # Line 51 provide the port to access the     #   Service
+                                       # Default type is ClusterIP without #Loadbalancer 

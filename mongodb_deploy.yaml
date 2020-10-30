@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  labels: 
+    app: mongodb
+spec:               # Specifications for a DEPLOYMENT
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:             # Specifications for a POD
+      containers:
+      - name: mongodb
+        image: mongo                        ## Almost same for all config file ## 
+        ports:
+        - containerPort: 27017              # Default port
+        env: 
+        - name: MONGO_INITDB_ROOT_USERNAME  # Root username from Docker Hub 
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret            # Name of secret key from secret_config
+              key: username                   # username is key of username in secret
+        - name: MONGO_INITDB_ROOT_PASSWORD   # Root password from Docker Hub
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: password
+---                                    
+apiVersion: v1                          # Start of service file
+kind: Service                           # Mongo-Db internal service to mongo-express
+metadata:
+  name: mongodb-service
+spec:
+  selector:
+    app: mongodb                       # To Connect to pod through label in deployment.
+  ports:
+    - protocol: TCP
+      port: 27017                       # Service port 
+      targetPort: 27017                 # Container port of deployment
